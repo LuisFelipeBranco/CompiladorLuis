@@ -1,6 +1,6 @@
 from os import system
 import sys
-#palavraReservadas = [["main", 1], ["tipo_float", 2], ["tipo_int", 3], ["tipo_char", 4], ["while", 5], ["do", 6], ["if", 7], ["else", 8], ["id", 9]]
+
 palavrasReservadas = [[1, "main"], [2, "if"], [3, "else"], [4, "while"], [5, "do"], [6, "for"], [7, "int"], [8, "float"], [9, "char"], [10, "id"]]
 operadoresAritmeticos = [[11, "+"], [12, "-"], [13, "*"], [14, "/"], [15, "="]]
 operadoresRelacionais = [[16, ">"], [17, "<"], [18, ">="], [19, "<="], [20, "=="], [21, "!="]]
@@ -25,6 +25,26 @@ class Token:
 
     def get_lex(self):
         return self.lex
+
+class tabel():
+
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def push(self, item):#empilha
+        self.items.append(item)
+
+    def pop(self):#desempilha
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[len(self.items) - 1]
+
+    def size(self):
+        return len(self.items)
 
 def leitura():
     global coluna, linha, lido
@@ -291,17 +311,91 @@ def Scanner():
 
         leitura()
 
+def program():
+    Scanner()
+    if tok.get_lex() == palavrasReservadas[6][1]:#int
+        print(tok.get_lex())
+        Scanner()
+        if tok.get_lex() == palavrasReservadas[0][1]:#main
+            print(tok.get_lex())
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[0][1]:#(
+                print(tok.get_lex())
+                Scanner()
+                if tok.get_lex() == caracteresEspeciais[1][1]:#)
+                    print(tok.get_lex())
+                    Scanner()
+                    block()
+                else:
+                    print('ERRO: Má inicialização do programa faltou fecha parentese, Linha: ', linha, ' Coluna: ', coluna)
+                    sys.exit()
+            else:
+                print('ERRO: Má inicialização do programa faltou abre parentese, Linha: ', linha, ' Coluna: ', coluna)
+                sys.exit()
+        else:
+            print('ERRO: Má inicialização do programa faltou o main, Linha: ', linha, ' Coluna: ', coluna)
+            sys.exit()
+    else:
+        print('ERRO: Má inicialização do programa faltou o int, Linha: ', linha, ' Coluna: ', coluna)
+        sys.exit()
+
+
+
+def block(): #<bloco>::=“{“ {<decl_var>}* {<comando>}* “}”
+    if tok.get_lex() == caracteresEspeciais[2][1]:#{
+        print(tok.get_lex())
+        Scanner()
+        var_declaration()#tem ou não
+        command()#tem ou não
+    else:#pode ter variavel ou não
+        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', má inicialização do bloco faltou o {.')
+        sys.exit()
+
+
+def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";"
+    if tok.get_lex() == palavrasReservadas[6][1] or tok.get_lex() == palavrasReservadas[7][1] or tok.get_lex() == palavrasReservadas[8][1]:#int/float/char
+        if tok.get_lex() == palavrasReservadas[6][1]:#int
+            type = 1
+        elif tok.get_lex() == palavrasReservadas[7][1]:#float
+            type = 2
+        else:#char
+            type = 3
+        Scanner()
+        if tok.get_lex() == palavrasReservadas[9][1]:#<type><id>
+            #coloca na tabela de simbolo;
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[5][1]:  # <type><id><;>
+                # fim da declaração com 1 variavel
+                print('declaração de 1 variavel apenas')
+            else:
+                while tok.get_lex() != caracteresEspeciais[5][1]:#<;>
+                    if tok.get_lex() == caracteresEspeciais[4][1]:
+
+
+        else:
+            print('ERRO linha: ', linha, ' coluna: ', coluna, ', ID não declarado!')
+            sys.exit()
+
+    else:
+        print('ERROR: linha: ', linha, ' coluna: ', coluna, ' faltou o tipo da variavel!!')
+        sys.exit()
+
+def command():
+    print()
+
 if __name__ == "__main__":
     arch = sys.argv[1]
     archive = open(arch, "r")
     tok = Token()
 
-    while(lido != ''):
+    program()
+
+    '''while(lido != ''):
         Scanner()
         print('____________________________________________')
         print("Classificação do Token: ", tok.get_opr())
         print("Lexema do Token: ", tok.get_lex())
-        print('____________________________________________')
+        print('____________________________________________')'''
 
 
     archive.closed
