@@ -26,7 +26,7 @@ class Token:
     def get_lex(self):
         return self.lex
 
-class tabel():
+class Tabel():
 
     def __init__(self):
         self.items = []
@@ -39,9 +39,6 @@ class tabel():
 
     def pop(self):#desempilha
         return self.items.pop()
-
-    def peek(self):
-        return self.items[len(self.items) - 1]
 
     def size(self):
         return len(self.items)
@@ -269,8 +266,6 @@ def Scanner():
                 return tok.token(palavrasReservadas[8][0], palavrasReservadas[8][1])
 
             else:
-                lexema = lexema + lido
-                #print("Erro na linha: ", linha, "Coluna: ", coluna)
                 return tok.token(palavrasReservadas[9][0], palavrasReservadas[9][1])
                 sys.exit()
 
@@ -360,16 +355,18 @@ def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";"
             type = 2
         else:#char
             type = 3
+
         Scanner()
         if tok.get_lex() == palavrasReservadas[9][1]:#<type><id>
-            #coloca na tabela de simbolo;
+            print('Lexema: ', lexema, ' Tipo: ', type)
+
             Scanner()
             if tok.get_lex() == caracteresEspeciais[5][1]:  # <type><id><;>
-                # fim da declaração com 1 variavel
-                print('declaração de 1 variavel apenas')
+                print()
             else:
                 while tok.get_lex() != caracteresEspeciais[5][1]:#<;>
                     if tok.get_lex() == caracteresEspeciais[4][1]:
+                        print()
 
 
         else:
@@ -387,6 +384,8 @@ if __name__ == "__main__":
     arch = sys.argv[1]
     archive = open(arch, "r")
     tok = Token()
+    sid = Tabel()
+    stype = Tabel()
 
     program()
 
