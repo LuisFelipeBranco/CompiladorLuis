@@ -66,7 +66,7 @@ def Scanner():
     while lido:
         lexema = ""
 
-        while lido == '\n' or lido == ' ':
+        while lido == '\n' or lido == ' ' or lido == '\t':
             leitura()
 
         if lido.isdigit():#lendo int e floats
@@ -266,8 +266,9 @@ def Scanner():
                 return tok.token(palavrasReservadas[8][0], palavrasReservadas[8][1])
 
             else:
+
                 return tok.token(palavrasReservadas[9][0], palavrasReservadas[9][1])
-                sys.exit()
+                #sys.exit()
 
         elif lido == "":
             return tok.token(caracteresEspeciais[6][0], caracteresEspeciais[6][1])
@@ -309,16 +310,12 @@ def Scanner():
 def program():
     Scanner()
     if tok.get_lex() == palavrasReservadas[6][1]:#int
-        print(tok.get_lex())
         Scanner()
         if tok.get_lex() == palavrasReservadas[0][1]:#main
-            print(tok.get_lex())
             Scanner()
             if tok.get_lex() == caracteresEspeciais[0][1]:#(
-                print(tok.get_lex())
                 Scanner()
                 if tok.get_lex() == caracteresEspeciais[1][1]:#)
-                    print(tok.get_lex())
                     Scanner()
                     block()
                 else:
@@ -334,51 +331,212 @@ def program():
         print('ERRO: Má inicialização do programa faltou o int, Linha: ', linha, ' Coluna: ', coluna)
         sys.exit()
 
-
-
 def block(): #<bloco>::=“{“ {<decl_var>}* {<comando>}* “}”
     if tok.get_lex() == caracteresEspeciais[2][1]:#{
-        print(tok.get_lex())
         Scanner()
-        var_declaration()#tem ou não
-        command()#tem ou não
+        while tok.get_lex() != caracteresEspeciais[3][1]:
+            var_declaration()#tem ou não
+            command()#tem ou não
+        if tok.get_lex() == caracteresEspeciais[3][1]:#}
+            return
+        else:
+            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', faltou o [ } ]')
+            sys.exit()
     else:#pode ter variavel ou não
-        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', má inicialização do bloco faltou o {.')
+        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', problema na inicialização do bloco.')
         sys.exit()
 
-
-def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";"
+def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";" olhar o contador de linhas e colunas depois
     if tok.get_lex() == palavrasReservadas[6][1] or tok.get_lex() == palavrasReservadas[7][1] or tok.get_lex() == palavrasReservadas[8][1]:#int/float/char
         if tok.get_lex() == palavrasReservadas[6][1]:#int
-            type = 1
-        elif tok.get_lex() == palavrasReservadas[7][1]:#float
-            type = 2
-        else:#char
-            type = 3
-
+            type = 'int'
+        if tok.get_lex() == palavrasReservadas[7][1]:#float
+            type = 'float'
+        if tok.get_lex() == palavrasReservadas[8][1]:#char
+            type = 'char'
         Scanner()
+
         if tok.get_lex() == palavrasReservadas[9][1]:#<type><id>
-            print('Lexema: ', lexema, ' Tipo: ', type)
-
+            sid.push(lexema)
+            stype.push(type)
             Scanner()
-            if tok.get_lex() == caracteresEspeciais[5][1]:  # <type><id><;>
-                print()
-            else:
-                while tok.get_lex() != caracteresEspeciais[5][1]:#<;>
-                    if tok.get_lex() == caracteresEspeciais[4][1]:
-                        print()
+            if tok.get_lex() == caracteresEspeciais[5][1]:#<type><id><;> declaracao de 1 variavel
+                Scanner()
+                exit()
 
+            elif tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,>
+                Scanner()
+                while tok.get_lex() != caracteresEspeciais[5][1]:
+                    if tok.get_lex() == palavrasReservadas[9][1]:#<type><id><,><id>
+                        sid.push(lexema)
+                        stype.push(type)
+                        Scanner()
+                        if tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,><id><,>
+                            Scanner()
+
+                        elif tok.get_lex() == caracteresEspeciais[5][1]:#<type><id><,><id><;>
+                            Scanner()
+                            exit()
+
+                        else:
+                            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', declaração de variavel mal feita!')
+                            sys.exit()
+
+                    else:
+                        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', má declaração de variaveis!')
+                        sys.exit()
+
+                print('ERRO: linha: ', linha, ' coluna: ', coluna, ', [;] após a [,]')
+                sys.exit()
+
+            else:
+                print('ERRO: linha: ', linha, ' coluna: ', coluna, ' declaração de variavel feita de forma incorreta, faltou o [;]')
+                sys.exit()
 
         else:
-            print('ERRO linha: ', linha, ' coluna: ', coluna, ', ID não declarado!')
+            print('ERRO linha: ', linha, ' coluna: ', coluna, ', variavel não declarada!', lexema)
+            sys.exit()
+
+def iteration():#<iteração>::=while "("<expr_relacional>")" <comando> | do <comando> while "("<expr_relacional>")"";"
+    Scanner()
+    if tok.get_lex() == palavrasReservadas[3][1]:#while
+        Scanner()
+        if tok.get_lex() == caracteresEspeciais[0][1]:#<(>
+            Scanner()
+            relational_expression()
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[1][1]:#<)>
+                Scanner()
+                command()
+            else:
+                print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou o <)> do while.')
+                sys.exit()
+        else:
+            print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou o <(> do while.')
+            sys.exit()
+
+    elif tok.get_lex() == palavrasReservadas[4][1]:#do
+        Scanner()
+        command()
+        Scanner()
+        if tok.get_lex() == palavrasReservadas[3][1]:#while
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[0][1]:#<(>
+                Scanner()
+                relational_expression()
+                Scanner()
+                if tok.get_lex() == caracteresEspeciais[1][1]:#<)>
+                    Scanner()
+                    if tok.get_lex() == caracteresEspeciais[5][1]:#<;>
+                        Scanner()
+                    else:
+                        print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou o <;> do while.')
+                        sys.exit()
+                else:
+                    print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou o <)> do while.')
+                    sys.exit()
+            else:
+                print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou o <)> do while.')
+                sys.exit()
+        else:
+            print('ERRO linha: ', linha, ' coluna: ', coluna, ', faltou comando while')
             sys.exit()
 
     else:
-        print('ERROR: linha: ', linha, ' coluna: ', coluna, ' faltou o tipo da variavel!!')
+        print('ERRO linha: ', linha, ' coluna: ', coluna, ', comando fora do laço de iteração!')
         sys.exit()
 
-def command():
-    print()
+def relational_expression():#<expr_relacional>::=<expr_arit> <op_relacional> <expr_arit>
+    pass
+
+def command():#<comando> ::= <comando_básico> | <iteração> | if "("<expr_relacional>")" <comando> {else <comando>}?
+    if tok.get_lex() == palavrasReservadas[9][1] or tok.get_lex() == caracteresEspeciais[2][0]:#<id> ou <{>
+        basic_command()
+    elif tok.get_lex() == palavrasReservadas[5][1] or tok.get_lex() == palavrasReservadas[6][1]:#<do> ou <while>
+        iteration()
+    elif tok.get_lex() == palavrasReservadas[1][1]:#if
+        Scanner()
+        if tok.get_lex() == caracteresEspeciais[0][1]:#<(>
+            Scanner()
+            relational_expression()
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[1][1]:#<)>
+                Scanner()
+                command()
+                Scanner()
+                if tok.get_lex() == caracteresEspeciais[2][1]:#{
+                    Scanner()
+                    if tok.get_lex() == palavrasReservadas[2][1]:#else
+                        Scanner()
+                        command()
+                        Scanner()
+                        if tok.get_lex() == caracteresEspeciais[3][1]:#}
+                            Scanner()
+                        else:
+                            print('ERRO: linha: ', linha, 'coluna: ', coluna, ', esperado <}>.')
+                            sys.exit()
+                    else:
+                        print('ERRO: linha: ', linha, 'coluna: ', coluna, ', esperado comando <else>.')
+                        sys.exit()
+                else:
+                    Scanner()
+            else:
+                print('ERRO: linha: ', linha, 'coluna: ', coluna, ', faltou o <)> do comando <if>')
+                sys.exit()
+        else:
+            print('ERRO: linha: ', linha, 'coluna: ', coluna, ', expressão relacional do comando <if> não declarada!')
+            sys.exit()
+
+def arithmetic_expression():#<expr_arit>::=<expr_arit> "+" <termo>   | <expr_arit> "-" <termo> | <termo>
+    Scanner()
+
+def attribution():#<atribuição>::=<id> "=" <expr_arit> ";"
+    Scanner()
+    if tok.get_lex() == palavrasReservadas[9][1]:#<id>
+        Scanner()
+        if tok.get_lex() == operadoresAritmeticos[4][1]:#<=>
+            Scanner()
+            arithmetic_expression()
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[5][1]:#<;>
+                exit()
+            else:
+                print('ERRO: linha: ', linha, 'coluna: ', coluna, ', e esperado um <;>!')
+                sys.exit()
+        else:
+            print('ERRO: linha: ', linha, 'coluna: ', coluna, ', na atribuição e esperado um <=> após a variavel!')
+            sys.exit()
+    else:
+        print('ERRO: linha: ', linha, 'coluna: ', coluna, ', é esperado uma variável!')
+        sys.exit()
+
+def basic_command():#<comando_básico>::=<atribuição> | <bloco>
+    Scanner()
+    if tok.get_lex() == palavrasReservadas[9][1]:#<id>
+        attribution()
+    elif tok.get_lex() == caracteresEspeciais[2][1]:#<{>
+        block()
+    else:
+        print('ERRO: linha: ', linha, ' coluna: ', coluna, ' má formação de comando básico!')
+        sys.exit()
+
+def term():#<termo>::=<termo> "*" <fator> | <termo> “/” <fator> | <fator>
+    pass
+
+def factor():#<fator>::=“(“ <expr_arit> “)” | <id> | <float> | <inteiro> | <char>
+    if tok.get_lex() == caracteresEspeciais[0][1]:#<(>
+        Scanner()
+        arithmetic_expression()
+        Scanner()
+        if tok.get_lex() == caracteresEspeciais[1][1]:#<)>
+            pass
+
+    elif tok.get_opr() == tipos[0][0] or tok.get_opr() == tipos[0][1] or tok.get_opr() == tipos[0][2] or tok.get_lex() == palavrasReservadas[9][1]:
+        return
+
+    else:
+        print('ERRO: linha: ', linha, 'coluna: ', coluna, ', erro na formação do fator.')
+        sys.exit()
 
 if __name__ == "__main__":
     arch = sys.argv[1]
@@ -394,6 +552,8 @@ if __name__ == "__main__":
         print('____________________________________________')
         print("Classificação do Token: ", tok.get_opr())
         print("Lexema do Token: ", tok.get_lex())
+        print('linha: ', linha)
+        print('coluna: ', coluna)
         print('____________________________________________')'''
 
 
