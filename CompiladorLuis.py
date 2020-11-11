@@ -26,6 +26,26 @@ class Token:
     def get_lex(self):
         return self.lex
 
+class table ():
+    def __init__(self):
+        self.types = []
+        self.lexems = []
+
+    def isEmpty(self):
+        return self.types == []
+
+    def push(self, type, lexem):#empilha
+        self.types.append(type)
+        self.lexems.append(lexem)
+
+    def pop(self):#desempilha
+        print(self.types.pop() + self.lexems.pop())
+
+    def size(self):
+        print(self.types + self.lexems)
+        #return len(self.items)
+
+'''
 class Tabel():
 
     def __init__(self):
@@ -41,7 +61,7 @@ class Tabel():
         return self.items.pop()
 
     def size(self):
-        return len(self.items)
+        return len(self.items)'''
 
 def leitura():
     global coluna, linha, lido
@@ -337,39 +357,47 @@ def block(): #<bloco>::=“{“ {<decl_var>}* {<comando>}* “}”
         while tok.get_lex() != caracteresEspeciais[3][1]:
             var_declaration()#tem ou não
             command()#tem ou não
+            Scanner()
+            if tok.get_lex() == caracteresEspeciais[6][1]:#fim de arquivo antes de fechar }
+                print("ERRO: Linha: ", linha, 'coluna: ', coluna, 'fim de arquivo alcançado!')
+                return
         if tok.get_lex() == caracteresEspeciais[3][1]:#}
             return
         else:
             print('ERRO: linha: ', linha, ' coluna: ', coluna, ', faltou o [ } ]')
             sys.exit()
     else:#pode ter variavel ou não
-        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', problema na inicialização do bloco.')
+        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', problema na inicialização do bloco, faltou o [ { ]')
         sys.exit()
 
-def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";" olhar o contador de linhas e colunas depois
+def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";"
     if tok.get_lex() == palavrasReservadas[6][1] or tok.get_lex() == palavrasReservadas[7][1] or tok.get_lex() == palavrasReservadas[8][1]:#int/float/char
         if tok.get_lex() == palavrasReservadas[6][1]:#int
             type = 'int'
-        if tok.get_lex() == palavrasReservadas[7][1]:#float
+        elif tok.get_lex() == palavrasReservadas[7][1]:#float
             type = 'float'
-        if tok.get_lex() == palavrasReservadas[8][1]:#char
+        else: #char
             type = 'char'
-        Scanner()
 
+        stable.push(type, 'xyz')
+        stable.push('float', 'gato')
+        stable.size()
+
+        '''sid.push(type, 'xyzgato')
+        sid.items()
+        Scanner()
+            
         if tok.get_lex() == palavrasReservadas[9][1]:#<type><id>
-            sid.push(lexema)
-            stype.push(type)
+            sid.push(type,lexema)
             Scanner()
             if tok.get_lex() == caracteresEspeciais[5][1]:#<type><id><;> declaracao de 1 variavel
-                Scanner()
                 exit()
 
             elif tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,>
                 Scanner()
-                while tok.get_lex() != caracteresEspeciais[5][1]:
+                while tok.get_lex() != caracteresEspeciais[5][1]:#;
                     if tok.get_lex() == palavrasReservadas[9][1]:#<type><id><,><id>
                         sid.push(lexema)
-                        stype.push(type)
                         Scanner()
                         if tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,><id><,>
                             Scanner()
@@ -379,7 +407,7 @@ def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";" olhar o contador 
                             exit()
 
                         else:
-                            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', declaração de variavel mal feita!')
+                            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', declaração de variavel mal feita!!!!!!!!')
                             sys.exit()
 
                     else:
@@ -394,8 +422,9 @@ def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";" olhar o contador 
                 sys.exit()
 
         else:
-            print('ERRO linha: ', linha, ' coluna: ', coluna, ', variavel não declarada!', lexema)
-            sys.exit()
+            print('ERRO linha: ', linha, ' coluna: ', coluna, ', <ID> da variavel não declarada!', lexema)
+            sys.exit()'''
+
 
 def iteration():#<iteração>::=while "("<expr_relacional>")" <comando> | do <comando> while "("<expr_relacional>")"";"
     Scanner()
@@ -489,6 +518,8 @@ def command():#<comando> ::= <comando_básico> | <iteração> | if "("<expr_rela
 
 def arithmetic_expression():#<expr_arit>::=<expr_arit> "+" <termo>   | <expr_arit> "-" <termo> | <termo>
     Scanner()
+    if tok.get_lex() == operadoresAritmeticos[0][1] or tok.get_lex() == operadoresAritmeticos[1][1]:
+        pass
 
 def attribution():#<atribuição>::=<id> "=" <expr_arit> ";"
     Scanner()
@@ -531,7 +562,7 @@ def factor():#<fator>::=“(“ <expr_arit> “)” | <id> | <float> | <inteiro>
         if tok.get_lex() == caracteresEspeciais[1][1]:#<)>
             pass
 
-    elif tok.get_opr() == tipos[0][0] or tok.get_opr() == tipos[0][1] or tok.get_opr() == tipos[0][2] or tok.get_lex() == palavrasReservadas[9][1]:
+    elif tok.get_opr() == tipos[0][0] or tok.get_opr() == tipos[1][0] or tok.get_opr() == tipos[2][0] or tok.get_lex() == palavrasReservadas[9][1]:
         return
 
     else:
@@ -542,10 +573,10 @@ if __name__ == "__main__":
     arch = sys.argv[1]
     archive = open(arch, "r")
     tok = Token()
-    sid = Tabel()
-    stype = Tabel()
-
-    program()
+    stable = table()
+    #program()
+    Scanner()
+    var_declaration()
 
     '''while(lido != ''):
         Scanner()
