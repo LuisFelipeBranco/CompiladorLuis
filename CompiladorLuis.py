@@ -28,40 +28,28 @@ class Token:
 
 class table ():
     def __init__(self):
-        self.types = []
-        self.lexems = []
-
-    def isEmpty(self):
-        return self.types == []
-
-    def push(self, type, lexem):#empilha
-        self.types.append(type)
-        self.lexems.append(lexem)
-
-    def pop(self):#desempilha
-        print(self.types.pop() + self.lexems.pop())
-
-    def size(self):
-        print(self.types + self.lexems)
-        #return len(self.items)
-
-'''
-class Tabel():
-
-    def __init__(self):
         self.items = []
 
     def isEmpty(self):
         return self.items == []
 
-    def push(self, item):#empilha
+    def push(self, item):#empilha tipo
+        self.items.append(item)
+
+    def pushLexem(self, item):
         self.items.append(item)
 
     def pop(self):#desempilha
-        return self.items.pop()
+        #return self.items.pop()
+        print(self.items.pop())
 
     def size(self):
-        return len(self.items)'''
+        return len(self.items)
+
+    def running(self):
+        for number in self.items:
+            print(number)
+
 
 def leitura():
     global coluna, linha, lido
@@ -356,7 +344,7 @@ def block(): #<bloco>::=“{“ {<decl_var>}* {<comando>}* “}”
         Scanner()
         while tok.get_lex() != caracteresEspeciais[3][1]:
             var_declaration()#tem ou não
-            command()#tem ou não
+            #command()#tem ou não
             Scanner()
             if tok.get_lex() == caracteresEspeciais[6][1]:#fim de arquivo antes de fechar }
                 print("ERRO: Linha: ", linha, 'coluna: ', coluna, 'fim de arquivo alcançado!')
@@ -370,61 +358,44 @@ def block(): #<bloco>::=“{“ {<decl_var>}* {<comando>}* “}”
         print('ERRO: linha: ', linha, ' coluna: ', coluna, ', problema na inicialização do bloco, faltou o [ { ]')
         sys.exit()
 
-def var_declaration():#<decl_var> ::= <tipo> <id> {,<id>}* ";"
+def var_declaration():#<decl_var> ::= <tipo> <id> {<,><id>}* <;>
     if tok.get_lex() == palavrasReservadas[6][1] or tok.get_lex() == palavrasReservadas[7][1] or tok.get_lex() == palavrasReservadas[8][1]:#int/float/char
-        if tok.get_lex() == palavrasReservadas[6][1]:#int
+        if tok.get_lex() == palavrasReservadas[6][1]:   #int
             type = 'int'
-        elif tok.get_lex() == palavrasReservadas[7][1]:#float
+        elif tok.get_lex() == palavrasReservadas[7][1]: #float
             type = 'float'
-        else: #char
+        else:                                           #char
             type = 'char'
+        stable.push(type)
 
-        stable.push(type, 'xyz')
-        stable.push('float', 'gato')
-        stable.size()
-
-        '''sid.push(type, 'xyzgato')
-        sid.items()
         Scanner()
-            
-        if tok.get_lex() == palavrasReservadas[9][1]:#<type><id>
-            sid.push(type,lexema)
+        if tok.get_lex() == palavrasReservadas[9][1]:#<id>
+            stable.push(lexema)
             Scanner()
-            if tok.get_lex() == caracteresEspeciais[5][1]:#<type><id><;> declaracao de 1 variavel
-                exit()
-
-            elif tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,>
-                Scanner()
-                while tok.get_lex() != caracteresEspeciais[5][1]:#;
-                    if tok.get_lex() == palavrasReservadas[9][1]:#<type><id><,><id>
-                        sid.push(lexema)
-                        Scanner()
-                        if tok.get_lex() == caracteresEspeciais[4][1]:#<type><id><,><id><,>
-                            Scanner()
-
-                        elif tok.get_lex() == caracteresEspeciais[5][1]:#<type><id><,><id><;>
-                            Scanner()
-                            exit()
-
+            if tok.get_lex() == caracteresEspeciais[4][1]:#<,>
+                while tok.get_lex() != caracteresEspeciais[5][1]:#<;>
+                    if tok.get_lex() == palavrasReservadas[9][1] or tok.get_lex() == caracteresEspeciais[4][1]:#<id><,>
+                        if tok.get_lex() == palavrasReservadas[9][1]:
+                            stable.push(lexema)
                         else:
-                            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', declaração de variavel mal feita!!!!!!!!')
-                            sys.exit()
-
+                            if lido == caracteresEspeciais[4][1] or lido == caracteresEspeciais[5][1]:
+                                print('ERRO: linha: ', linha, ' coluna: ', coluna, ', erro na declaração de variavel')
+                                sys.exit()
                     else:
-                        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', má declaração de variaveis!')
+                        print('ERRO: linha: ', linha, ' coluna: ', coluna, ', erro na declaração de variavel')
                         sys.exit()
+                    Scanner()
 
-                print('ERRO: linha: ', linha, ' coluna: ', coluna, ', [;] após a [,]')
-                sys.exit()
+            elif tok.get_lex() == caracteresEspeciais[5][1]:#<;> declaração de 1 variavel
+                return
 
             else:
-                print('ERRO: linha: ', linha, ' coluna: ', coluna, ' declaração de variavel feita de forma incorreta, faltou o [;]')
+                print('ERRO: linha: ', linha, ' coluna: ', coluna, ', após o <ID> necessario <,> ou <;>')
                 sys.exit()
 
         else:
-            print('ERRO linha: ', linha, ' coluna: ', coluna, ', <ID> da variavel não declarada!', lexema)
-            sys.exit()'''
-
+            print('ERRO: linha: ', linha, ' coluna: ', coluna, ', <ID> da declaração da variavel faltando!')
+            sys.exit()
 
 def iteration():#<iteração>::=while "("<expr_relacional>")" <comando> | do <comando> while "("<expr_relacional>")"";"
     Scanner()
@@ -574,9 +545,11 @@ if __name__ == "__main__":
     archive = open(arch, "r")
     tok = Token()
     stable = table()
-    #program()
-    Scanner()
-    var_declaration()
+
+    program()
+
+    #var_declaration()
+
 
     '''while(lido != ''):
         Scanner()
